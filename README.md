@@ -9,8 +9,8 @@ To work you will need a [npm](https://www.npmjs.com/get-npm),
 ####  In first terminal run
 
 ```bash
-git clone ...
-cd ./ ...
+git clone https://github.com/PaxPay/PAXTOKEN.git
+cd ./PAXTOKEN
 npm i
 truffle develop
 ```
@@ -18,7 +18,7 @@ truffle develop
 #### In another terminal run
 
 ```bash
-cd ./ ...
+cd ./PAXTOKEN
 chmod +x ./compile_n_start.sh
 ./compile_n_start.sh
 ```
