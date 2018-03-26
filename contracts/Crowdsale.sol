@@ -165,10 +165,7 @@ contract Crowdsale is Pausable {
     }
 
 
-    /*
-    "0xf8a076ab1bae73686eecf740c679b726aa5999fc", "0xf8a076ab1bae73686eecf740c679b726aa5999fc", "0xf8a076ab1bae73686eecf740c679b726aa5999fc"
-    */
-    function Crowdsale(address _company, address _founders_1, address _founders_2) public {
+    function Crowdsale(address _company, address _founders_1, address _founders_2, address _token) public {
         multisig = owner;
         rate = (uint)(1 ether).div(5000);
 
@@ -205,6 +202,8 @@ contract Crowdsale is Pausable {
             });
 
         hardcap = 349500000 * decimals;
+
+        token = PAXToken(_token);
 
         company = _company;
         founders_1 = _founders_1;
@@ -268,7 +267,7 @@ contract Crowdsale is Pausable {
         require(sumWei < softcap && !state);
         uint value = balances[msg.sender];
         balances[msg.sender] = 0;
-        Refund(msg.sender, value);
+        emit Refund(msg.sender, value);
         msg.sender.transfer(value);
     }
 
@@ -279,7 +278,7 @@ contract Crowdsale is Pausable {
         require(!state);
         require(!isBurned);
         isBurned = true;
-        BurnUnsoldTokens();
+        emit BurnUnsoldTokens();
         token.burn(token.balanceOf(this));
         if (token.paused()) {
             token.unpause();
@@ -296,8 +295,10 @@ contract Crowdsale is Pausable {
         requireOnce = false;
         state = true;
         period = 0;
-        StartICO();
-        token = new PAXToken(company, founders_1, founders_2, true);
+        emit StartICO();
+        token.ownersTransfer(company, (uint)(300000000).mul(decimals));
+        token.ownersTransfer(founders_1, (uint)(300000000).mul(decimals));
+        token.ownersTransfer(founders_2, (uint)(50000000).mul(decimals));
         return true;
     }
 
@@ -306,7 +307,7 @@ contract Crowdsale is Pausable {
      */
     function stopICO() onlyOwner public returns(bool) {
         state = false;
-        StopICO();
+        emit StopICO();
         if (token.paused()) {
             token.unpause();
         }
@@ -471,7 +472,7 @@ contract Crowdsale is Pausable {
     function usersPause() private {
         pauseDate = now;
         paused = true;
-        Pause();
+        emit Pause();
     }
 
     /**
@@ -501,7 +502,7 @@ contract Crowdsale is Pausable {
             }
         }
 
-        DateMoved(_shift);
+        emit DateMoved(_shift);
 
         return true;
     }
@@ -547,7 +548,7 @@ contract Crowdsale is Pausable {
     function setMultisig(address _to) public onlyOwner returns(bool) {
         require(_to != address(0));
         multisig = _to;
-        NewWalletAddress(_to);
+        emit NewWalletAddress(_to);
         return true;
     }
 

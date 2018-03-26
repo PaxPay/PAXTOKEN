@@ -19,14 +19,19 @@ const should = require('chai')
 const Crowdsale = artifacts.require('./Crowdsale.sol');
 const Token = artifacts.require('./PAXToken.sol');
 
-contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
+contract('Crowdsale', function ([owner, company, founders1, founders2, ...accounts]) {
     before(async function () {
         // Advance to the next block to correctly read time in the solidity "now" function interpreted by testrpc
         await advanceBlock();
     });
 
     beforeEach(async function () {
-        this.crowdsale = await Crowdsale.new(company, founders1, founders2);
+        this.token = await Token.new(true);
+        this.crowdsale = await Crowdsale.new(company, founders1, founders2, this.token.address);
+        const owner = web3.eth.accounts[0];
+        const tokenBalance = (await this.token.balanceOf(owner)).toNumber();
+        await this.token.ownersTransfer(this.crowdsale.address, +tokenBalance);
+        await this.token.transferOwnership(this.crowdsale.address);
     });
 
     describe('start', function () {
@@ -34,8 +39,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
             await this.crowdsale.setStartDate(latestTime() + duration.minutes(1));
             await this.crowdsale.startICO();
             await increaseTimeTo(latestTime() + duration.minutes(10));
-            const tokenAddress = await this.crowdsale.token();
-            this.token = await Token.at(tokenAddress);
             this.decimals = Math.pow(10, await this.token.decimals());
         });
 
@@ -81,8 +84,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
             await this.crowdsale.setStartDate(latestTime() + duration.minutes(1));
             await this.crowdsale.startICO();
             await increaseTimeTo(latestTime() + duration.minutes(10));
-            const tokenAddress = await this.crowdsale.token();
-            this.token = await Token.at(tokenAddress);
             this.decimals = Math.pow(10, await this.token.decimals());
         });
 
@@ -145,8 +146,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
             await this.crowdsale.setStartDate(latestTime() + duration.minutes(1));
             await this.crowdsale.startICO();
             await increaseTimeTo(latestTime() + duration.minutes(10));
-            const tokenAddress = await this.crowdsale.token();
-            this.token = await Token.at(tokenAddress);
             this.decimals = Math.pow(10, await this.token.decimals());
         });
 
@@ -250,8 +249,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
             await this.crowdsale.setStartDate(latestTime() + duration.minutes(1));
             await this.crowdsale.startICO();
             await increaseTimeTo(latestTime() + duration.minutes(10));
-            const tokenAddress = await this.crowdsale.token();
-            this.token = await Token.at(tokenAddress);
             this.decimals = Math.pow(10, await this.token.decimals());
         });
 
@@ -263,7 +260,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
 
             await increaseTimeTo(latestTime() + duration.minutes(10));
             await this.crowdsale.sendTransaction({ value: ether(1), from: buyer }).should.be.rejected;
-            await this.token.transfer(accounts[1], 1E10, { from: buyer }).should.be.rejected;
             await this.crowdsale.unpause();
             await increaseTimeTo(latestTime() + duration.minutes(10));
 
@@ -320,8 +316,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
             await this.crowdsale.setStartDate(latestTime() + duration.minutes(1));
             await this.crowdsale.startICO();
             await increaseTimeTo(latestTime() + duration.minutes(10));
-            const tokenAddress = await this.crowdsale.token();
-            this.token = await Token.at(tokenAddress);
             this.decimals = Math.pow(10, await this.token.decimals());
         });
 
@@ -359,8 +353,6 @@ contract('Crowdsale', function ([company, founders1, founders2, ...accounts]) {
             await this.crowdsale.setStartDate(latestTime() + duration.minutes(1));
             await this.crowdsale.startICO();
             await increaseTimeTo(latestTime() + duration.minutes(10));
-            const tokenAddress = await this.crowdsale.token();
-            this.token = await Token.at(tokenAddress);
             this.decimals = Math.pow(10, await this.token.decimals());
         });
 
